@@ -1,21 +1,16 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-
-
-# In[2]:
+from selenium import webdriver
+chrome_driver_path = r'C:\Users\shivank\Untitled Folder\chromedriver.exe'
 
 
 data = pd.read_csv('LaLigaPass.csv')
 
-
-# In[6]:
+data['x'] = data['x']*1.2
+data['y'] = data['y']*0.8
+data['endX'] = data['endX']*1.2
+data['endY'] = data['endY']*0.8
 
 
 def deep_completions_percentage(df1, team_id):
@@ -30,7 +25,7 @@ def deep_completions_percentage(df1, team_id):
         for i in range(n, len(df2['x'])):
             if n > len(df2['x']):
                 break
-            if (df2['endX'][i] < 6) and (df2['endY'][i] > 30) and (df2['endY'][i] < 50):
+            if (df2['x'][i] < 6) and (30 < df2['y'][i] < 50) and (df2['endX'][i] < 18) and (18 < df2['endY'][i] < 62):
                 n = i + 2
                 on = True
                 break
@@ -51,46 +46,41 @@ def deep_completions_percentage(df1, team_id):
 
 
 teams = data['team_id'].unique().tolist()
-comparison = []
+
+driver.get('https://1xbet.whoscored.com/Teams/60/Show/Spain-Deportivo-Alaves')
+names = []
 for team in teams:
-    rank = deep_completions_percentage(data, team)
-    comparison.append(rank)
-    
-comparison
+    driver.get('https://1xbet.whoscored.com/Teams/{}/Show/Spain-Deportivo-Alaves'.format(team))
+    element = driver.find_element_by_css_selector('.team-header-name')
+    names.append(element.text)
+driver.close()
 
-
-# In[7]:
-
-
-comparison.sort(reverse=True)
-laliga_teams = ['Barcelona', 'Real Madrid', 'Villarreal', 'Eibar', 'Real Sociedad', 'Sevilla', 'Huesca', 'Valencia',
-               'Real Betis', 'Levante', 'Athletic Bilbao', 'Atletico Madrid', 'Celta Vigo', 'Osasuna', 'Elche',
-               'Real Valladolid', 'Alaves', 'Cadiz', 'Getafe', 'Granada']
-
-
-# In[8]:
+comparison = [final_third_percentage(data, team) for team in teams]
+c_list = zip(comparison, teams, names)
+c_list = sorted(c_list, key=lambda x: x[0], reverse=True)
+names = [c[2] for c in c_list]
+rank = [c[0] for c in c_list]
 
 
 fig, ax = plt.subplots(figsize=(18,12),facecolor='#222222')
 ax.set_facecolor('#222222')
-ax.barh(laliga_teams, comparison)
+ax.barh(names, rank, color='red')
 ax.margins(y=0)
 ax.spines['top'].set_visible(False)
 ax.spines['left'].set_visible(False)
 ax.spines['bottom'].set_visible(False)
 ax.spines['right'].set_visible(False)
-ax.set_xlabel('% Of Final Third Entries From Uninterrupted Goal Kick Sequences',c='white',size=17,fontfamily='serif',labelpad=20,ha='center')
-ax.set_yticklabels(laliga_teams,size=17,fontfamily='serif',color='white')
+ax.set_xlabel('% Of Final Third Entries From Uninterrupted Short Goal Kick Sequences',c='white',size=17,fontfamily='serif',labelpad=20,ha='center')
+ax.set_yticklabels(names,size=17,fontfamily='serif',color='white')
 ax.set_xticklabels([0, 2.5, 5, 7.5, 10, 12.5, 15, 17.5, 20], size=13, fontfamily='serif', color='white')
 ax.tick_params(axis='y', size=0)
 ax.tick_params(axis='x', size=0)
 ax.invert_yaxis()
-ax.text(-3, -1, ' Which La Liga Teams Had The Highest Final Third Entry Rates From Goal Kick Actions Last Season?', color='white',size=22,fontweight='bold')
+ax.text(-3, -1.5, ' Which La Liga Teams Had The Highest Final Third Entry Rates From Short Goal Kick Sequences?', color='white',size=22,fontweight='bold',fontfamily='serif')
+ax.text(7, -1, 'La Liga 20/21', color='white',size=20, fontweight='bold', fontfamily='serif')
 plt.tight_layout()
 plt.savefig("final third entries", dpi=500, bbox_inches="tight")
 
-
-# In[ ]:
 
 
 
