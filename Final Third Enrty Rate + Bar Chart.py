@@ -13,7 +13,7 @@ data['endX'] = data['endX']*1.2
 data['endY'] = data['endY']*0.8
 
 
-def deep_completions_percentage(df1, team_id):
+def final_third_percentage(df1, team_id):
     df2 = df1[df1['team_id'] == team_id]
     df2 = df2.reset_index()
     n = 0
